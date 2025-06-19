@@ -22,13 +22,11 @@ add_compile_definitions(_LIBCZISTATICLIB)
 add_compile_definitions(LIBCZI_BUILD_UNITTESTS=OFF)
 add_compile_definitions(LIBCZI_BUILD_DYNLIB=OFF)
 add_compile_definitions(LIBCZI_BUILD_CZICMD=OFF)
-set(LIBCZI_HAVE_WIN32_API OFF CACHE BOOL "Disable Win32 API usage in libczi")
-add_definitions(-DLIBCZI_WINDOWSAPIAVAILABLE=0)
 
 FetchContent_Declare(
   libCZI
-  GIT_REPOSITORY https://github.com/ZEISS/libczi.git
-  GIT_TAG        543d8025609fa94df2c4131568a50fc6100c0ca2  # as of 2025-05-31
+  GIT_REPOSITORY https://github.com/Agapanthus/libczi.git
+  GIT_TAG        f4c0cc21f86d9f1a7fea3aafad3d40a705cfa251  
   CMAKE_ARGS -DCMAKE_CXX_STANDARD=17
 )
 FetchContent_MakeAvailable(libCZI)
