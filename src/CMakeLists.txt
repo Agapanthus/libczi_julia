@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.21.7)
 project(libczi_julia LANGUAGES CXX)
-set(JL_TARGET libczi_julia)
+set(JL_TARGET czi_julia)
 
 # ---------------- options ----------------
 set(CMAKE_LIBRARY_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/lib")
