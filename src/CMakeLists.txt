@@ -27,6 +27,7 @@ FetchContent_Declare(
   libCZI
   GIT_REPOSITORY https://github.com/ZEISS/libczi.git
   GIT_TAG        543d8025609fa94df2c4131568a50fc6100c0ca2  # as of 2025-05-31
+  CMAKE_ARGS -DCMAKE_CXX_STANDARD=17
 )
 FetchContent_MakeAvailable(libCZI)
 set(LIBCZI_TARGET libCZI)
