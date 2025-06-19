@@ -25,8 +25,8 @@ add_compile_definitions(LIBCZI_BUILD_CZICMD=OFF)
 
 FetchContent_Declare(
   libCZI
-  GIT_REPOSITORY https://github.com/ZEISS/libczi.git
-  GIT_TAG        543d8025609fa94df2c4131568a50fc6100c0ca2  # as of 2025-05-31
+  GIT_REPOSITORY https://github.com/Agapanthus/ibczi.git
+  GIT_TAG        0c7b7124f2273bc04576daf4f74d32547592300c  # as of 2025-05-31
   CMAKE_ARGS -DCMAKE_CXX_STANDARD=17
 )
 FetchContent_MakeAvailable(libCZI)
