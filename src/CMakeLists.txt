@@ -26,7 +26,7 @@ add_compile_definitions(LIBCZI_BUILD_CZICMD=OFF)
 FetchContent_Declare(
   libCZI
   GIT_REPOSITORY https://github.com/Agapanthus/libczi.git
-  GIT_TAG        bc1b92666cbaa3348cd04089ef36d66f98e6ba5e  
+  GIT_TAG        62f721e577ef7ba2135383e65d83015b6b834db3  
   CMAKE_ARGS -DCMAKE_CXX_STANDARD=17
 )
 FetchContent_MakeAvailable(libCZI)
