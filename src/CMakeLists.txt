@@ -44,7 +44,7 @@ set(CMAKE_INSTALL_RPATH "${CMAKE_INSTALL_PREFIX}/lib;${JlCxx_location}")
 # ------------- wrapper library ----------
 add_library(${JL_TARGET} MODULE libczi_wrap.cpp)
 target_include_directories(${JL_TARGET} PRIVATE ${libCZI_SOURCE_DIR}/Src)
-target_link_libraries(${JL_TARGET} PRIVATE ${LIBCZI_TARGET} JlCxx::cxxwrap_julia)
+target_link_libraries(${JL_TARGET} PRIVATE ${LIBCZI_TARGET} JlCxx::cxxwrap_julia  JlCxx::cxxwrap_julia_stl)
 set_target_properties(${JL_TARGET} PROPERTIES CXX_STANDARD 17)
 
 install(TARGETS
