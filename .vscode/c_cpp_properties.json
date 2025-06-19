@@ -1,0 +1,19 @@
+{
+    "configurations": [
+        {
+            "name": "WSL",
+            "includePath": [
+                "${workspaceFolder}/cxx",
+                "${workspaceFolder}/deps/build/_deps/libczi-src/Src",
+                "/home/eric/.julia/artifacts/6e0e408a98cae471e66ce1421715059b8f6d1cfd/include",
+                "/home/eric/.julia/juliaup/julia-1.11.5+0.x64.linux.gnu/include/julia"
+            ],
+            "defines": [],
+            "compilerPath": "/usr/bin/clang++",
+            "cStandard": "c17",
+            "cppStandard": "c++17",
+            "intelliSenseMode": "linux-clang-x64"
+        }
+    ],
+    "version": 4
+}
