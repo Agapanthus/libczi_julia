@@ -7,11 +7,10 @@ set(CMAKE_LIBRARY_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/lib")
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
-set(CMAKE_POSITION_INDEPENDENT_CODE ON)
-set(CMAKE_EXPORT_COMPILE_COMMANDS ON CACHE INTERNAL "")
 
-# Ensure RPATH includes libjulia/libcxxwrap at runtime
-set(CMAKE_INSTALL_RPATH_USE_LINK_PATH ON)
+# to avoid lib64 dirs as binarybuilder uses lib everywhere
+set(CMAKE_LIBRARY_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/lib")
+set(CMAKE_INSTALL_LIBDIR "lib")
 
 # -------------- dependencies -------------
 include(FetchContent)
