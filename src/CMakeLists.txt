@@ -6,7 +6,6 @@ set(JL_TARGET czi_julia)
 set(CMAKE_LIBRARY_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/lib")
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
-set(CMAKE_CXX_EXTENSIONS OFF)
 
 # to avoid lib64 dirs as binarybuilder uses lib everywhere
 set(CMAKE_LIBRARY_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/lib")
@@ -43,7 +42,6 @@ set(CMAKE_INSTALL_RPATH "${CMAKE_INSTALL_PREFIX}/lib;${JlCxx_location}")
 add_library(${JL_TARGET} SHARED libczi_wrap.cpp)
 target_include_directories(${JL_TARGET} PRIVATE ${libCZI_SOURCE_DIR}/Src)
 target_link_libraries(${JL_TARGET} PRIVATE ${LIBCZI_TARGET} JlCxx::cxxwrap_julia  JlCxx::cxxwrap_julia_stl)
-set_target_properties(${JL_TARGET} PROPERTIES CXX_STANDARD 17)
 
 install(TARGETS
   ${JL_TARGET}
