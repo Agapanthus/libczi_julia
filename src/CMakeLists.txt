@@ -12,7 +12,8 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(LIBCZI_BUILD_UNITTESTS OFF CACHE BOOL "" FORCE)
 set(LIBCZI_BUILD_DYNLIB OFF CACHE BOOL "" FORCE)
 set(LIBCZI_BUILD_CZICMD OFF CACHE BOOL "" FORCE)
-add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/../../libczi)
+add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/../../libczi 
+                 ${CMAKE_BINARY_DIR}/libczi_build)
   
 # ------------- wrapper library ----------
 add_library(${JL_TARGET} SHARED libczi_wrap.cpp)
