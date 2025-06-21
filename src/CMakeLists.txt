@@ -18,7 +18,7 @@ add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/../../libczi
 # ------------- wrapper library ----------
 add_library(${JL_TARGET} SHARED libczi_wrap.cpp)
 target_include_directories(${JL_TARGET} PRIVATE ${libCZI_SOURCE_DIR}/Src)
-target_link_libraries(${JL_TARGET} PRIVATE libCZI::libCZI)
+target_link_libraries(${JL_TARGET} PRIVATE libCZI)
 
 install(TARGETS
   ${JL_TARGET}
