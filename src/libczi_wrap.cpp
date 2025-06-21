@@ -170,7 +170,7 @@ class MySubblock {
     uint64_t size(libCZI::ISubBlock::MemBlkType block) const {
         std::size_t n = 0;
         void *_ptr;
-        subblock->DangerousGetRawData(block, &_ptr, &n);
+        subblock->DangerousGetRawData(block, _ptr, n);
         return n; // size of metadata in bytes
     }
 
@@ -178,7 +178,7 @@ class MySubblock {
                   const uint64_t buffer_size) const {
         std::size_t n = 0;
         void *ptr;
-        subblock->DangerousGetRawData(block, &ptr, &n);
+        subblock->DangerousGetRawData(block, ptr, n);
         if (buffer_size < n) {
             return 0; // buffer too small
         }
@@ -266,15 +266,20 @@ class MyCziFile {
     libCZI::SubBlockStatistics stats;   // dim & bbox summary
 
   public:
-    explicit MyCziFile(const std::string &path) {
-        reader = std::make_shared<CCZIReader>();
-        std::wstring_convert<std::codecvt_utf8_utf16<wchar_t>> converter;
-        auto strm =
-            libCZI::CreateStreamFromFile(converter.from_bytes(path).c_str());
-        reader->Open(strm, nullptr);
-        if (this->is_operational()) {
+    explicit MyCziFile() { reader = std::make_shared<CCZIReader>(); }
+
+    bool open(const std::string &path) {
+        try {
+            std::wstring_convert<std::codecvt_utf8_utf16<wchar_t>> converter;
+            auto strm = libCZI::CreateStreamFromFile(
+                converter.from_bytes(path).c_str());
+            reader->Open(strm, nullptr);
             stats = reader->GetStatistics();
+        } catch (const std::exception &e) {
+            // Handle exceptions from libCZI
+            return false; // failed to open file
         }
+        return true;
     }
 
     bool is_operational() const { return reader && reader->isOperational; }
@@ -497,9 +502,14 @@ const char *attachment_info_name(const MyAttachmentInfo *info) {
 int attachment_info_index(const MyAttachmentInfo *info) { return info->index; }
 */
 
-MyCziFile *czi_open(const char *path) { return new MyCziFile(path); }
-
-bool czi_is_operational(const MyCziFile *czi) { return czi->is_operational(); }
+MyCziFile *czi_open(const char *path) {
+    const MyCziFile *f = new MyCziFile();
+    if (!f->open(path)) {
+        delete f;       // clean up if opening failed
+        return nullptr; // failed to open file
+    }
+    return f; // return the opened CZI file
+}
 
 void czi_close(MyCziFile *czi) { delete czi; }
 
