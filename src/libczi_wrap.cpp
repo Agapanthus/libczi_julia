@@ -1,8 +1,3 @@
-#include <jlcxx/jlcxx.hpp>
-#include <jlcxx/array.hpp>
-#include <jlcxx/tuple.hpp>
-#include <jlcxx/stl.hpp>
-
 #include <libCZI/CZIReader.h>
 #include <libCZI/libCZI.h>
 
@@ -375,130 +370,13 @@ class MyCziFile {
     }
 };
 
-JLCXX_MODULE define_julia_module(jlcxx::Module &mod) {
+// Julia FFI interface
+extern "C" {    
+    MyCziFile *czi_open(const char *path) {
+        return new MyCziFile(path);
+    }
 
-    mod.add_bits<libCZI::CompressionMode>("CompressionMode",
-                                          jlcxx::julia_type("CppEnum"));
-    mod.set_const("CompressionModeInvalid", libCZI::CompressionMode::Invalid);
-    mod.set_const("CompressionModeUncompressed",
-                  libCZI::CompressionMode::UnCompressed);
-    mod.set_const("CompressionModeJpg", libCZI::CompressionMode::Jpg);
-    mod.set_const("CompressionModeJpgXr", libCZI::CompressionMode::JpgXr);
-    mod.set_const("CompressionModeZstd0", libCZI::CompressionMode::Zstd0);
-    mod.set_const("CompressionModeZstd1", libCZI::CompressionMode::Zstd1);
-
-    mod.add_bits<libCZI::SubBlockPyramidType>("SubBlockPyramidType",
-                                              jlcxx::julia_type("CppEnum"));
-    mod.set_const("SubBlockPyramidTypeInvalid",
-                  libCZI::SubBlockPyramidType::Invalid);
-    mod.set_const("SubBlockPyramidTypeNone", libCZI::SubBlockPyramidType::None);
-    mod.set_const("SubBlockPyramidTypeSingleSubBlock",
-                  libCZI::SubBlockPyramidType::SingleSubBlock);
-    mod.set_const("SubBlockPyramidTypeMultiSubBlock",
-                  libCZI::SubBlockPyramidType::MultiSubBlock);
-
-    mod.add_bits<libCZI::PixelType>("PixelType", jlcxx::julia_type("CppEnum"));
-    mod.set_const("PixelTypeInvalid", libCZI::PixelType::Invalid);
-    mod.set_const("PixelTypeGray8", libCZI::PixelType::Gray8);
-    mod.set_const("PixelTypeGray16", libCZI::PixelType::Gray16);
-    mod.set_const("PixelTypeGray32Float", libCZI::PixelType::Gray32Float);
-    mod.set_const("PixelTypeBgr24", libCZI::PixelType::Bgr24);
-    mod.set_const("PixelTypeBgr48", libCZI::PixelType::Bgr48);
-    mod.set_const("PixelTypeBgr96Float", libCZI::PixelType::Bgr96Float);
-    mod.set_const("PixelTypeBgra32", libCZI::PixelType::Bgra32);
-    mod.set_const("PixelTypeGray64ComplexFloat",
-                  libCZI::PixelType::Gray64ComplexFloat);
-    mod.set_const("PixelTypeBgr192ComplexFloat",
-                  libCZI::PixelType::Bgr192ComplexFloat);
-    mod.set_const("PixelTypeGray32", libCZI::PixelType::Gray32);
-    mod.set_const("PixelTypeGray64Float", libCZI::PixelType::Gray64Float);
-
-    mod.add_type<MySubblockInfo>("SubblockInfo")
-        .method("type", &MySubblockInfo::type)
-        .method("file_pos", &MySubblockInfo::file_pos)
-        .method("physical",
-                [](const MySubblockInfo &sb) -> std::tuple<int, int> {
-                    return sb.get_physical();
-                })
-        .method("logical",
-                [](const MySubblockInfo &sb) -> std::tuple<int, int, int, int> {
-                    return sb.get_logical();
-                })
-        .method("index", &MySubblockInfo::index)
-        .method("pyramid_type", &MySubblockInfo::pyramid)
-        .method("compression", &MySubblockInfo::compression)
-        .method("m_index", &MySubblockInfo::m)
-        .method("z_index", &MySubblockInfo::z)
-        .method("c_index", &MySubblockInfo::c)
-        .method("t_index", &MySubblockInfo::t)
-        .method("r_index", &MySubblockInfo::r)
-        .method("s_index", &MySubblockInfo::s)
-        .method("i_index", &MySubblockInfo::i)
-        .method("h_index", &MySubblockInfo::h)
-        .method("v_index", &MySubblockInfo::v)
-        .method("b_index", &MySubblockInfo::b);
-
-    mod.add_type<MyGUID>("GUID")
-        .method("to_string", &MyGUID::to_string)
-        .method("data1", &MyGUID::data1)
-        .method("data2", &MyGUID::data2)
-        .method("data3", &MyGUID::data3)
-        .method("data4", &MyGUID::data4);
-
-    mod.method("initialize_vector_of_subblocks_type",
-               [](const std::vector<MySubblockInfo> info) -> int {
-                   return info.size();
-               });
-
-    mod.add_type<MyAttachmentInfo>("AttachmentInfo")
-        .method("get_content_guid", &MyAttachmentInfo::get_content_guid)
-        .method("get_content_file_type",
-                &MyAttachmentInfo::get_content_file_type)
-        .method("get_name", &MyAttachmentInfo::get_name)
-        .method("get_index", &MyAttachmentInfo::get_index);
-
-    mod.add_type<MySubblock>("Subblock")
-        .method("bitmap",
-                [](const MySubblock &sb) -> std::vector<std::uint8_t> {
-                    return sb.bitmap();
-                })
-        .method("meta",
-                [](const MySubblock &sb) -> std::string { return sb.meta(); })
-        .method("attachment", [](const MySubblock &sb) -> std::string {
-            return sb.attachment();
-        });
-
-    mod.add_type<MyCziFile>("CziFile")
-        .constructor<const std::string &>()
-        .method(
-            "dimension_ranges",
-            [](const MyCziFile &p) -> std::vector<std::tuple<char, int, int>> {
-                return p.dimension_ranges();
-            })
-        .method("subblocks",
-                [](const MyCziFile &p) -> std::vector<MySubblockInfo> {
-                    return p.subblocks();
-                })
-        .method("subblocks_level0",
-                [](const MyCziFile &p) -> std::vector<MySubblockInfo> {
-                    return p.subblocks_level0();
-                })
-        .method("subblock",
-                [](const MyCziFile &p, int subblock_index) {
-                    return p.subblock(subblock_index);
-                })
-        .method("metadata",
-                [](const MyCziFile &p) -> std::string { return p.metadata(); })
-        .method("header",
-                [](const MyCziFile &p) -> std::tuple<MyGUID, int, int> {
-                    return p.header();
-                })
-        .method("attachments",
-                [](const MyCziFile &p) -> std::vector<MyAttachmentInfo> {
-                    return p.attachments();
-                })
-        .method("attachment",
-                [](const MyCziFile &p, int index) -> std::vector<std::uint8_t> {
-                    return p.attachment(index);
-                });
+    void czi_close(MyCziFile *czi) {
+        delete czi;
+    }
 }
