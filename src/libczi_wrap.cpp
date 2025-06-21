@@ -268,7 +268,7 @@ class MyCziFile {
   public:
     explicit MyCziFile() { reader = std::make_shared<CCZIReader>(); }
 
-    bool open(const std::string &path) {
+    bool open(const char *path) {
         try {
             std::wstring_convert<std::codecvt_utf8_utf16<wchar_t>> converter;
             auto strm = libCZI::CreateStreamFromFile(
@@ -503,7 +503,7 @@ int attachment_info_index(const MyAttachmentInfo *info) { return info->index; }
 
 MyCziFile *czi_open(const char *path) {
     const MyCziFile *f = new MyCziFile();
-    if (!f->Open(path)) {
+    if (!f->open(path)) {
         delete f;       // clean up if opening failed
         return nullptr; // failed to open file
     }
