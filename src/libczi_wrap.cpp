@@ -38,12 +38,9 @@ struct MySubblockInfo {
     int32_t compression_mode; // compression mode
     int32_t pyramid_type;     // pyramid type
 
-    MySubblockInfo(int subblock_index, const libCZI::DirectorySubBlockInfo &sb)
-        : MySubblockInfo(subblock_index, sb.GetSubBlockInfo()) {
+    MySubblockInfo(int subblock_index,
+                   const libCZI::DirectorySubBlockInfo &sb) {
         this->file_position = sb.filePosition;
-    }
-
-    MySubblockInfo(int subblock_index, const libCZI::SubBlockInfo &sb) {
         {
             int z;
             if (sb.coordinate.GetPosition(libCZI::DimensionIndex::Z, &z))
@@ -141,18 +138,11 @@ struct MyGUID {
 // Opaque wrapper around ISubBlock
 class MySubblock {
     std::shared_ptr<libCZI::ISubBlock> subblock;
-    const MySubblockInfo info;
     std::shared_ptr<libCZI::IBitmapData> bitmap_data;
 
   public:
-    MySubblock(std::shared_ptr<libCZI::ISubBlock> subblock,
-               const MySubblockInfo &info)
-        : subblock(std::move(subblock)), info(info) {}
-
-    MySubblock(std::shared_ptr<libCZI::ISubBlock> subblock, int subblock_index)
-        : info(subblock_index, subblock->GetSubBlockInfo()) {
-        this->subblock = std::move(subblock);
-    }
+    MySubblock(std::shared_ptr<libCZI::ISubBlock> subblock)
+        : subblock(std::move(subblock)) {}
 
     uint64_t decode_bitmap() {
         if (!bitmap_data) {
@@ -372,7 +362,7 @@ class MyCziFile {
     uint64_t copy_subblocks(MySubblockInfo *info, const int buffer_size) const {
         int pos = 0;
         reader->EnumerateSubBlocksEx(
-            [&](int idx, const libCZI::SubBlockInfo &sb) {
+            [&](int idx, const libCZI::DirectorySubBlockInfo &sb) {
                 if (pos >= buffer_size) {
                     return false; // stop enumeration if buffer is full
                 }
@@ -401,7 +391,7 @@ class MyCziFile {
         if (!sb) {
             return nullptr; // subblock not found
         }
-        return new MySubblock(sb, subblock_index);
+        return new MySubblock(sb);
     }
 
     std::string metadata() const {
