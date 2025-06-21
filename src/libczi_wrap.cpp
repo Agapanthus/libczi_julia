@@ -169,7 +169,7 @@ class MySubblock {
 
     uint64_t size(libCZI::ISubBlock::MemBlkType block) const {
         std::size_t n = 0;
-        void *_ptr;
+        const void *_ptr;
         subblock->DangerousGetRawData(block, _ptr, n);
         return n; // size of metadata in bytes
     }
@@ -177,7 +177,7 @@ class MySubblock {
     uint64_t copy(libCZI::ISubBlock::MemBlkType block, uint8_t *buf,
                   const uint64_t buffer_size) const {
         std::size_t n = 0;
-        void *ptr;
+        const void *ptr;
         subblock->DangerousGetRawData(block, ptr, n);
         if (buffer_size < n) {
             return 0; // buffer too small
@@ -282,8 +282,6 @@ class MyCziFile {
         return true;
     }
 
-    bool is_operational() const { return reader && reader->isOperational; }
-
     ~MyCziFile() {
         if (reader) {
             reader->Close();
@@ -351,10 +349,11 @@ class MyCziFile {
     }
 
     bool copy_scene_bounding_box(SceneBoundingBox *bbox, int s) const {
-        if (!stats.sceneBoundingBoxes.contains(s)) {
+        auto it = stats.sceneBoundingBoxes.find(s);
+        if (it == stats.sceneBoundingBoxes.end()) {
             return false;
         }
-        const auto boxes = stats.sceneBoundingBoxes[s];
+        const libCZI::BoundingBoxes &boxes = it->second;
         const libCZI::IntRect b = boxes.boundingBox;
         bbox->x = b.x;
         bbox->y = b.y;
@@ -504,7 +503,7 @@ int attachment_info_index(const MyAttachmentInfo *info) { return info->index; }
 
 MyCziFile *czi_open(const char *path) {
     const MyCziFile *f = new MyCziFile();
-    if (!f->open(path)) {
+    if (!f->Open(path)) {
         delete f;       // clean up if opening failed
         return nullptr; // failed to open file
     }
