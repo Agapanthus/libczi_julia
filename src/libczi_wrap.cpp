@@ -40,50 +40,49 @@ struct MySubblockInfo {
 
     MySubblockInfo(int subblock_index,
                    const libCZI::DirectorySubBlockInfo &sb) {
-        this->file_position = sb.filePosition;
         {
             int z;
-            if (sb.coordinate.GetPosition(libCZI::DimensionIndex::Z, &z))
+            if (sb.coordinate.TryGetPosition(libCZI::DimensionIndex::Z, &z))
                 this->z = z;
             else
                 this->z = -1;
             int c;
-            if (sb.coordinate.GetPosition(libCZI::DimensionIndex::C, &c))
+            if (sb.coordinate.TryGetPosition(libCZI::DimensionIndex::C, &c))
                 this->c = c;
             else
                 this->c = -1;
             int t;
-            if (sb.coordinate.GetPosition(libCZI::DimensionIndex::T, &t))
+            if (sb.coordinate.TryGetPosition(libCZI::DimensionIndex::T, &t))
                 this->t = t;
             else
                 this->t = -1;
             int r;
-            if (sb.coordinate.GetPosition(libCZI::DimensionIndex::R, &r))
+            if (sb.coordinate.TryGetPosition(libCZI::DimensionIndex::R, &r))
                 this->r = r;
             else
                 this->r = -1;
             int s;
-            if (sb.coordinate.GetPosition(libCZI::DimensionIndex::S, &s))
+            if (sb.coordinate.TryGetPosition(libCZI::DimensionIndex::S, &s))
                 this->s = s;
             else
                 this->s = -1;
             int i;
-            if (sb.coordinate.GetPosition(libCZI::DimensionIndex::I, &i))
+            if (sb.coordinate.TryGetPosition(libCZI::DimensionIndex::I, &i))
                 this->i = i;
             else
                 this->i = -1;
             int h;
-            if (sb.coordinate.GetPosition(libCZI::DimensionIndex::H, &h))
+            if (sb.coordinate.TryGetPosition(libCZI::DimensionIndex::H, &h))
                 this->h = h;
             else
                 this->h = -1;
             int v;
-            if (sb.coordinate.GetPosition(libCZI::DimensionIndex::V, &v))
+            if (sb.coordinate.TryGetPosition(libCZI::DimensionIndex::V, &v))
                 this->v = v;
             else
                 this->v = -1;
             int b;
-            if (sb.coordinate.GetPosition(libCZI::DimensionIndex::B, &b))
+            if (sb.coordinate.TryGetPosition(libCZI::DimensionIndex::B, &b))
                 this->b = b;
             else
                 this->b = -1;
@@ -100,7 +99,7 @@ struct MySubblockInfo {
         this->physical_w = sb.physicalSize.w;
         this->physical_h = sb.physicalSize.h;
         this->ptype = static_cast<int32_t>(sb.pixelType);
-        this->file_position = std::numeric_limits<uint64_t>::max();
+        this->file_position = sb.filePosition;
         this->subblock_index = subblock_index;
         this->pyramid_type = static_cast<int32_t>(sb.pyramidType);
         this->compression_mode = sb.compressionModeRaw;
@@ -138,17 +137,17 @@ struct MyGUID {
 // Opaque wrapper around ISubBlock
 class MySubblock {
     std::shared_ptr<libCZI::ISubBlock> subblock;
-    std::shared_ptr<libCZI::IBitmapData> bitmap_data;
+    std::shared_ptr<libCZI::IBitmapData> bmp;
 
   public:
     MySubblock(std::shared_ptr<libCZI::ISubBlock> subblock)
         : subblock(std::move(subblock)) {}
 
     uint64_t decode_bitmap() {
-        if (!bitmap_data) {
-            bitmap_data = subblock->CreateBitmapData();
-            if (!bitmap_data) {
-                throw std::string("Failed to create bitmap data");
+        if (!bmp) {
+            bmp = subblock->CreateBitmap();
+            if (!bmp) {
+                return 0;
             }
         }
         return bmp->GetWidth() * bmp->GetHeight() *
@@ -156,23 +155,26 @@ class MySubblock {
     }
 
     uint64_t copy_bitmap(uint8_t *buf, const uint64_t buffer_size) {
-        const bytes = decode_bitmap();
+        const uint64_t bytes = decode_bitmap();
         if (buffer_size < bytes) {
             return 0; // buffer too small
+        }
+        if (!bmp) {
+            return 0; // bitmap not decoded yet
         }
         libCZI::ScopedBitmapLockerP lock{bmp.get()};
         std::memcpy(buf, lock.ptrDataRoi, bytes);
         return bytes; // number of bytes copied
     }
 
-    uint64_t size(libCZI::ISubBlock block) const {
+    uint64_t size(libCZI::ISubBlock::MemBlkType block) const {
         std::size_t n = 0;
         void *_ptr;
         subblock->DangerousGetRawData(block, &_ptr, &n);
         return n; // size of metadata in bytes
     }
 
-    uint64_t copy(libCZI::ISubBlock block, uint8_t *buf,
+    uint64_t copy(libCZI::ISubBlock::MemBlkType block, uint8_t *buf,
                   const uint64_t buffer_size) const {
         std::size_t n = 0;
         void *ptr;
@@ -239,12 +241,12 @@ struct DimensionRanges {
     int64_t m_start;
     int64_t m_end;
 
-    dimension_ranges()
+    DimensionRanges()
         : z_start(0), z_end(-1), c_start(0), c_end(-1), t_start(0), t_end(-1),
           r_start(0), r_end(-1), s_start(0), s_end(-1), i_start(0), i_end(-1),
           h_start(0), h_end(-1), v_start(0), v_end(-1), b_start(0), b_end(-1),
           m_start(0), m_end(-1) {}
-}
+};
 
 struct SceneBoundingBox {
     int64_t x;
@@ -256,7 +258,7 @@ struct SceneBoundingBox {
     int64_t y0;
     int64_t w0;
     int64_t h0;
-}
+};
 
 // Opaque wrapper around CCZIReader
 class MyCziFile {
@@ -270,8 +272,12 @@ class MyCziFile {
         auto strm =
             libCZI::CreateStreamFromFile(converter.from_bytes(path).c_str());
         reader->Open(strm, nullptr);
-        stats = reader->GetStatistics();
+        if (this->is_operational()) {
+            stats = reader->GetStatistics();
+        }
     }
+
+    bool is_operational() const { return reader && reader->isOperational; }
 
     ~MyCziFile() {
         if (reader) {
@@ -343,7 +349,7 @@ class MyCziFile {
         if (!stats.sceneBoundingBoxes.contains(s)) {
             return false;
         }
-        const boxes = stats.sceneBoundingBoxes[s];
+        const auto boxes = stats.sceneBoundingBoxes[s];
         const libCZI::IntRect b = boxes.boundingBox;
         bbox->x = b.x;
         bbox->y = b.y;
@@ -357,7 +363,7 @@ class MyCziFile {
         return true;
     }
 
-    uint64_t subblock_count() const { return stats->subBlockCount; }
+    uint64_t subblock_count() const { return stats.subBlockCount; }
 
     uint64_t copy_subblocks(MySubblockInfo *info, const int buffer_size) const {
         int pos = 0;
@@ -493,6 +499,8 @@ int attachment_info_index(const MyAttachmentInfo *info) { return info->index; }
 
 MyCziFile *czi_open(const char *path) { return new MyCziFile(path); }
 
+bool czi_is_operational(const MyCziFile *czi) { return czi->is_operational(); }
+
 void czi_close(MyCziFile *czi) { delete czi; }
 
 DimensionRanges czi_dimension_ranges(const MyCziFile *czi) {
@@ -528,7 +536,7 @@ uint64_t czi_metadata_copy(const MyCziFile *czi, char *buf,
         return 0; // buffer too small
     }
     std::memcpy(buf, meta.c_str(), meta.length());
-    return meta.length(); // number of bytes copied
+    return meta.length(); // number of bytes copied, without null-termination
 }
 
 MyGUID czi_file_guid(const MyCziFile *czi) { return czi->file_guid(); }
