@@ -1,7 +1,7 @@
 using BinaryBuilder, Pkg
 
 name = "libczi_julia"
-version = v"0.2.0"
+version = v"0.2.1"
 
 const LIBCZI_JULIA_REPOSITORY =
     "https://github.com/Agapanthus/libczi_julia.git"
@@ -31,6 +31,8 @@ cmake -S . -B build -G "Unix Makefiles" \
     -DLIBCZI_SOURCE_DIR=${WORKSPACE}/srcdir/libczi \
     -DLIBCZI_BUILD_PREFER_EXTERNALPACKAGE_EIGEN3=ON \
     -DLIBCZI_BUILD_PREFER_EXTERNALPACKAGE_ZSTD=ON \
+    -Dzstd_DIR=${WORKSPACE}/srcdir/libczi_julia/cmake/zstd \
+    -DLIBCZI_JULIA_ZSTD_ROOT=${prefix} \
     -DCRASH_ON_UNALIGNED_ACCESS=0 \
     -DADDITIONAL_LIBS_REQUIRED_FOR_ATOMIC="" \
     -DBUILD_TESTING=OFF
