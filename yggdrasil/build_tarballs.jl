@@ -1,24 +1,28 @@
 using BinaryBuilder, Pkg
 
 name = "libczi_julia"
-version = v"0.2.1"
+version = v"0.2.2"
 
-const LIBCZI_JULIA_REPOSITORY =
-    "https://github.com/Agapanthus/libczi_julia.git"
-const LIBCZI_REPOSITORY =
-    "https://github.com/ZEISS/libczi.git"
+const LIBCZI_JULIA_COMMIT =
+    "0de3b4407bf13508e56f2b1d678616558dc7d737"
 const LIBCZI_COMMIT =
     "61f74ff097d6d0fbe6e36f204ff59d92e299d7cd"
-
-wrapper_commit = get(ENV, "LIBCZI_JULIA_COMMIT", "")
-occursin(r"^[0-9a-f]{40}$", wrapper_commit) || error(
-    "set LIBCZI_JULIA_COMMIT to the 40-character commit containing " *
-    "the hand-written C ABI wrapper",
-)
+const ZSTD_VERSION = v"1.5.7"
 
 sources = [
-    GitSource(LIBCZI_JULIA_REPOSITORY, wrapper_commit),
-    GitSource(LIBCZI_REPOSITORY, LIBCZI_COMMIT),
+    GitSource(
+        "https://github.com/Agapanthus/libczi_julia.git",
+        LIBCZI_JULIA_COMMIT,
+    ),
+    GitSource(
+        "https://github.com/ZEISS/libczi.git",
+        LIBCZI_COMMIT,
+    ),
+    ArchiveSource(
+        "https://github.com/facebook/zstd/releases/download/" *
+        "v$(ZSTD_VERSION)/zstd-$(ZSTD_VERSION).tar.gz",
+        "eb33e51f49a15e023950cd7825ca74a4a2b43db8354825ac24fc1b7ee09e6fa3",
+    ),
 ]
 
 script = raw"""
@@ -30,9 +34,9 @@ cmake -S . -B build -G "Unix Makefiles" \
     -DCMAKE_INSTALL_PREFIX=${prefix} \
     -DLIBCZI_SOURCE_DIR=${WORKSPACE}/srcdir/libczi \
     -DLIBCZI_BUILD_PREFER_EXTERNALPACKAGE_EIGEN3=ON \
-    -DLIBCZI_BUILD_PREFER_EXTERNALPACKAGE_ZSTD=ON \
-    -Dzstd_DIR=${WORKSPACE}/srcdir/libczi_julia/cmake/zstd \
-    -DLIBCZI_JULIA_ZSTD_ROOT=${prefix} \
+    -DLIBCZI_BUILD_PREFER_EXTERNALPACKAGE_ZSTD=OFF \
+    -DFETCHCONTENT_SOURCE_DIR_ZSTD=${WORKSPACE}/srcdir/zstd-1.5.7 \
+    -DFETCHCONTENT_FULLY_DISCONNECTED=ON \
     -DCRASH_ON_UNALIGNED_ACCESS=0 \
     -DADDITIONAL_LIBS_REQUIRED_FOR_ATOMIC="" \
     -DBUILD_TESTING=OFF
@@ -43,7 +47,7 @@ cmake --install build
 install_license \
     ${WORKSPACE}/srcdir/libczi_julia/COPYING \
     ${WORKSPACE}/srcdir/libczi/COPYING \
-    ${WORKSPACE}/srcdir/libczi/COPYING.LESSER
+    ${WORKSPACE}/srcdir/libczi/COPYING.LESSER     ${WORKSPACE}/srcdir/zstd-1.5.7/LICENSE
 """
 
 platforms = filter(supported_platforms()) do platform
@@ -67,7 +71,6 @@ products = [
 dependencies = [
     HostBuildDependency("CMake_jll"),
     BuildDependency("Eigen_jll"),
-    Dependency("Zstd_jll"),
 ]
 
 build_tarballs(
