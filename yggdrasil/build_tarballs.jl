@@ -1,10 +1,10 @@
 using BinaryBuilder, Pkg
 
 name = "libczi_julia"
-version = v"0.2.5"
+version = v"0.2.6"
 
 const LIBCZI_JULIA_COMMIT =
-    "292523f617eb4a7a7106bc028cca8781126bead7"
+    "37701a3f9ea81923fe3e2e4f24c3c516d16a3b72"
 const LIBCZI_COMMIT =
     "61f74ff097d6d0fbe6e36f204ff59d92e299d7cd"
 const ZSTD_VERSION = v"1.5.7"
@@ -38,7 +38,8 @@ cmake -S . -B build -G "Unix Makefiles" \
     -DLIBCZI_BUILD_PREFER_EXTERNALPACKAGE_ZSTD=OFF \
     -DFETCHCONTENT_SOURCE_DIR_ZSTD=${WORKSPACE}/srcdir/zstd-1.5.7 \
     -DFETCHCONTENT_FULLY_DISCONNECTED=ON \
-    -DCRASH_ON_UNALIGNED_ACCESS=0 \
+    -DCRASH_ON_UNALIGNED_ACCESS=OFF \
+    -DIS_BIG_ENDIAN=FALSE \
     -DADDITIONAL_LIBS_REQUIRED_FOR_ATOMIC="" \
     -DBUILD_TESTING=OFF
 
@@ -52,19 +53,17 @@ install_license \
     ${WORKSPACE}/srcdir/zstd-1.5.7/LICENSE
 """
 
-platforms = filter(supported_platforms()) do platform
-    (
-        os(platform) == "linux" &&
-        arch(platform) in ("x86_64", "aarch64") &&
-        libc(platform) == "glibc"
-    ) || (
-        os(platform) == "macos" &&
-        arch(platform) in ("x86_64", "aarch64")
-    ) || (
-        os(platform) == "windows" &&
-        arch(platform) == "x86_64"
-    )
-end
+const SUPPORTED_ARCHITECTURES = (
+    "x86_64",
+    "aarch64",
+    "powerpc64le",
+    "riscv64",
+)
+
+platforms = filter(
+    platform -> arch(platform) in SUPPORTED_ARCHITECTURES,
+    supported_platforms(),
+)
 
 products = [
     LibraryProduct(["libczi_julia", "czi_julia"], :libczi_julia),
