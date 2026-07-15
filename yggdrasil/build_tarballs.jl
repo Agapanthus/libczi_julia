@@ -4,7 +4,7 @@ name = "libczi_julia"
 version = v"0.2.6"
 
 const LIBCZI_JULIA_COMMIT =
-    "37701a3f9ea81923fe3e2e4f24c3c516d16a3b72"
+    "b02f36d2fd2ae0d524de8c6a8012c3eb96cbb7c2"
 const LIBCZI_COMMIT =
     "61f74ff097d6d0fbe6e36f204ff59d92e299d7cd"
 const ZSTD_VERSION = v"1.5.7"
