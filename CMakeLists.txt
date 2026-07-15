@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.20)
-project(libczi_julia VERSION 0.2.3 LANGUAGES C CXX)
+project(libczi_julia VERSION 0.2.5 LANGUAGES C CXX)
 
 include(GNUInstallDirs)
 include(CTest)

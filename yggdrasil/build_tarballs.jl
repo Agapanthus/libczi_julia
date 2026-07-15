@@ -1,10 +1,10 @@
 using BinaryBuilder, Pkg
 
 name = "libczi_julia"
-version = v"0.2.3"
+version = v"0.2.5"
 
 const LIBCZI_JULIA_COMMIT =
-    "0de3b4407bf13508e56f2b1d678616558dc7d737"
+    "292523f617eb4a7a7106bc028cca8781126bead7"
 const LIBCZI_COMMIT =
     "61f74ff097d6d0fbe6e36f204ff59d92e299d7cd"
 const ZSTD_VERSION = v"1.5.7"
@@ -28,6 +28,7 @@ sources = [
 script = raw"""
 cd ${WORKSPACE}/srcdir/libczi_julia
 
+
 cmake -S . -B build -G "Unix Makefiles" \
     -DCMAKE_TOOLCHAIN_FILE=${CMAKE_TARGET_TOOLCHAIN} \
     -DCMAKE_BUILD_TYPE=Release \
@@ -47,7 +48,8 @@ cmake --install build
 install_license \
     ${WORKSPACE}/srcdir/libczi_julia/COPYING \
     ${WORKSPACE}/srcdir/libczi/COPYING \
-    ${WORKSPACE}/srcdir/libczi/COPYING.LESSER     ${WORKSPACE}/srcdir/zstd-1.5.7/LICENSE
+    ${WORKSPACE}/srcdir/libczi/COPYING.LESSER \
+    ${WORKSPACE}/srcdir/zstd-1.5.7/LICENSE
 """
 
 platforms = filter(supported_platforms()) do platform
@@ -83,6 +85,6 @@ build_tarballs(
     products,
     dependencies;
     julia_compat="1.10",
-    preferred_gcc_version=v"8",
+    preferred_gcc_version=v"12",
     preferred_llvm_version=v"13",
 )

@@ -52,3 +52,9 @@ new commit before publishing the recipe.
 - Returned metadata and bitmap data are copied into caller-owned storage.
 - No C++ object, exception, callback, or standard-library type crosses the C
   boundary.
+
+## BinaryBuilder compiler selection
+
+The wrapper requires C++17. The recipe requests GCC 12 and LLVM 13 explicitly;
+BinaryBuilder otherwise defaults to GCC 4.8.5 for compatibility, which does
+not expose CMake's `cxx_std_17` compile feature.
