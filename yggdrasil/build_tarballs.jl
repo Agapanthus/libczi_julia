@@ -1,7 +1,7 @@
 using BinaryBuilder, Pkg
 
 name = "libczi_julia"
-version = v"0.2.2"
+version = v"0.2.3"
 
 const LIBCZI_JULIA_COMMIT =
     "0de3b4407bf13508e56f2b1d678616558dc7d737"
@@ -83,4 +83,6 @@ build_tarballs(
     products,
     dependencies;
     julia_compat="1.10",
+    preferred_gcc_version=v"8",
+    preferred_llvm_version=v"13",
 )
